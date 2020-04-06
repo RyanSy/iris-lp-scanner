@@ -8,7 +8,7 @@ router.use(cors());
 require('dotenv').config();
 
 /* GET home page. */
-router.get('/search/:barcode', function(req, res) {
+router.get('/search/:barcode', cors(), function(req, res) {
   axios({
     method: 'get',
     url: `https://api.discogs.com//database/search?q={${req.params.barcode}}&{?barcode}&token=${process.env.DISCOGS_USER_TOKEN}`,
