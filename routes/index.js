@@ -16,7 +16,7 @@ router.get('/search/:barcode', function(req, res) {
   })
   .then(function(response) {
     console.log(response.data.results[0]);
-    res.send(response.data.results[0]);
+    res.json(response.data.results[0]);
   });
 });
 
