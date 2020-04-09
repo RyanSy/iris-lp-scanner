@@ -3,11 +3,12 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var cors = require('cors');
-
+var helmet = require('helmet');
 var routes = require('./routes/index');
 
 var app = express();
 
+app.use(helmet());
 app.use(cors());
 app.use(logger('dev'));
 app.use(bodyParser.json());
