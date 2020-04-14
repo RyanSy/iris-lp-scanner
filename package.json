@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "pm2-runtime start ecosystem.config.js --env production",
-    "devstart": "DEBUG=iris-lp-scanner-server node ./bin/www"
+    "devstart": "DEBUG=iris-lp-scanner-server nodemon ./bin/www"
   },
   "dependencies": {
     "axios": "^0.19.2",
@@ -16,6 +16,7 @@
     "express": "^4.17.1",
     "helmet": "^3.22.0",
     "morgan": "^1.10.0",
-    "pm2": "^4.2.3"
+    "pm2": "^4.2.3",
+    "square-connect": "^3.20200325.0"
   }
 }
