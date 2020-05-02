@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var fs = require('fs');
 var cors = require('cors');
+var qs = require('qs');
 const axios = require('axios');
 const FormData = require('form-data');
 const { v4: uuidv4 } = require('uuid');
@@ -37,7 +38,6 @@ function catchError(error) {
 
 router.get('/search/:barcode', cors(), function(req, res) {
   console.log(`/search/${req.params.barcode} route called`);
-  // search for item in catalog - if found, update price/quantity, else create new item/item variation/get image/save images
   axios({
           method: 'post',
           url: 'https://connect.squareupsandbox.com/v2/catalog/search',
@@ -52,10 +52,21 @@ router.get('/search/:barcode', cors(), function(req, res) {
           }
       })
       .then(function(response) {
+        // if found, consider generating url directing to item on square dashboard
+        // look for image url
         if (response.data.objects) {
           console.log('search square result:\n', response.data.objects[0]);
-          // retrieve inventory count
-          res.json(response.data.objects[0]);
+          var item = response.data.objects[0];
+          var title = item.item_variation_data.name;
+          var price = parseInt(item.item_variation_data.price_money.amount)/100;
+          retrieveInventoryCount(item.id).then(function(result) {
+            var quantity = parseInt(result);
+            res.json({
+              title: title,
+              quantity: quantity,
+              price: price
+            });
+          });
         } else {
           console.log('item not found in catalog, searching discogs');
           searchDiscogs();
@@ -66,8 +77,21 @@ router.get('/search/:barcode', cors(), function(req, res) {
         catchError(error);
       });
 
-  function retrieveInventory() {
-
+  function retrieveInventoryCount(catalog_object_id) {
+    console.log('retrieveInventoryCount() called');
+    return axios({
+      method: 'get',
+      url: `https://connect.squareupsandbox.com/v2/inventory/${catalog_object_id}`,
+      headers: squareRequestHeaders
+    })
+    .then(function(response) {
+      console.log('retrieveInventoryCount() response:\n', response.data.counts[0].quantity);
+      return response.data.counts[0].quantity;
+    })
+    .catch(function(error) {
+      console.log('error retrieving inventory count');
+      catchError(error);
+    });
   }
 
   function searchDiscogs() {
@@ -117,6 +141,7 @@ router.post('/add-item', cors(), function(req, res) {
             console.log(response.data.catalog_object);
             var catalogObjectID = response.data.catalog_object.id;
             createItemVariation(catalogObjectID);
+            createImage(catalogObjectID);
           })
           .catch(function(error) {
             catchError(error);
@@ -191,27 +216,68 @@ router.post('/add-item', cors(), function(req, res) {
           });
   }
 
-  function createImage() {
+  function createImage(catalog_object_id) {
     axios({
       method: 'get',
       url: req.body.image_url,
       responseType: 'stream',
       headers: {'User-Agent': 'IRIS-LP-Scanner/1.0'}
     })
+    // consider refactoring below to save image to square directly from discogs response stream
     .then(function(response) {
       console.log(`========== got image ==========\n ${response.data}`);
-      response.data.pipe(fs.createWriteStream(`./tmp/${req.body.title}.jpg`));
+      response.data.pipe(fs.createWriteStream('./tmp/item.jpg'));
+    })
+    .then(function(response) {
+      console.log('========== saving image to square ==========');
+      var formData = new FormData();
+      var imageFile = fs.createReadStream('./tmp/item.jpg');
+      var requestObject = qs.stringify({
+        'idempotency_key': uuidv4(),
+        'object_id': catalog_object_id,
+        'image': {
+          'id': '#1',
+          'type': 'IMAGE'
+        }
+      });
+      formData.append('file', imageFile);
+      formData.append('request', requestObject);
+
+      axios({
+        method: 'post',
+        url: 'https://connect.squareupsandbox.com/v2/catalog/images',
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${process.env.SQUARE_SANDBOX_ACCESS_TOKEN}`,
+          'Cache-Control': 'no-cache',
+          'Square-Version': '2019-03-27',
+          'Content-Disposition': `form-data; name="item"; filename="item.jpg"`,
+          'Content-Type': `multipart/form-data; boundary=${formData._boundary}`
+        },
+        data: formData
+        // data: `file=${imageFile}&request=${requestObject}`
+      })
+      .then(function(response) {
+        console.log('========= image saved to square ==========');
+        console.log('saved image to square response:\n', response);
+      })
+      .catch(function(error) {
+        console.log('========== error saving image to square ==========');
+        catchError(error);
+      });
     })
     .catch(function (error) {
+      console.log('createImage() ERROR');
       catchError(error);
     });
   }
 
-  axios.all([createItem(), createImage()])
+  axios.all([createItem()])
     .then(axios.spread(function(one, two) {
       res.end();
     }))
     .catch(function (error) {
+      console.log('axios.all() error');
       catchError(error);
     });
 
