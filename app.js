@@ -4,8 +4,8 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var cors = require('cors');
 var helmet = require('helmet');
-var routes = require('./routes/index');
-
+var search = require('./routes/search');
+var addItem = require('./routes/add-item');
 var app = express();
 
 app.use(helmet());
@@ -15,7 +15,8 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
 app.use(cookieParser());
 
-app.use('/', routes);
+app.use('/search', search);
+app.use('/add-item', addItem);
 
 /// catch 404 and forwarding to error handler
 app.use(function(req, res, next) {

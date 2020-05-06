@@ -36,88 +36,7 @@ function catchError(error) {
   console.log(error.config);
 }
 
-router.get('/search/:barcode', cors(), function(req, res) {
-  console.log(`/search/${req.params.barcode} route called`);
-  axios({
-          method: 'post',
-          url: 'https://connect.squareupsandbox.com/v2/catalog/search',
-          headers: squareRequestHeaders,
-          data: {
-            'object_types': ['ITEM_VARIATION'],
-            'query': {
-              'text_query': {
-                'keywords': [req.params.barcode]
-              }
-            }
-          }
-      })
-      .then(function(response) {
-        // if found, consider generating url directing to item on square dashboard
-        // look for image url
-        if (response.data.objects) {
-          console.log('search square result:\n', response.data.objects[0]);
-          var item = response.data.objects[0];
-          var title = item.item_variation_data.name;
-          var price = parseInt(item.item_variation_data.price_money.amount)/100;
-          retrieveInventoryCount(item.id).then(function(result) {
-            var quantity = parseInt(result);
-            res.json({
-              title: title,
-              quantity: quantity,
-              price: price
-            });
-          });
-        } else {
-          console.log('item not found in catalog, searching discogs');
-          searchDiscogs();
-          }
-      })
-      .catch(function(error) {
-        console.log('error searching square');
-        catchError(error);
-      });
-
-  function retrieveInventoryCount(catalog_object_id) {
-    console.log('retrieveInventoryCount() called');
-    return axios({
-      method: 'get',
-      url: `https://connect.squareupsandbox.com/v2/inventory/${catalog_object_id}`,
-      headers: squareRequestHeaders
-    })
-    .then(function(response) {
-      console.log('retrieveInventoryCount() response:\n', response.data.counts[0].quantity);
-      return response.data.counts[0].quantity;
-    })
-    .catch(function(error) {
-      console.log('error retrieving inventory count');
-      catchError(error);
-    });
-  }
-
-  function searchDiscogs() {
-    console.log('searchDiscogs() called');
-    return axios({
-      method: 'get',
-      url: `https://api.discogs.com//database/search?q={${req.params.barcode}}&{?barcode}&token=${process.env.DISCOGS_USER_TOKEN}`,
-      headers: {'User-Agent': 'IRIS-LP-Scanner/1.0'}
-    })
-    .then(function(response) {
-      if (response.data.results.length > 0) {
-        console.log('item found on discogs:\n', response.data.results[0]);
-        res.json(response.data.results[0]);
-      } else {
-        console.log('item not found on discogs');
-        res.json({ title: 'Item not found' });
-      }
-    })
-    .catch(function(error) {
-      console.log('error searching discogs');
-      catchError(error);
-    });
-  }
-});
-
-router.post('/add-item', cors(), function(req, res) {
+router.post('/', cors(), function(req, res) {
   console.log('/add-item route called');
   function createItem() {
     return axios({
@@ -143,8 +62,10 @@ router.post('/add-item', cors(), function(req, res) {
             var catalogObjectVersion = response.data.catalog_object.version
             createItemVariation(catalogObjectID);
             createImage(catalogObjectID, catalogObjectVersion);
+            res.end();
           })
           .catch(function(error) {
+            console.log('========== error creating item ==========');
             catchError(error);
           });
   }
@@ -178,7 +99,8 @@ router.post('/add-item', cors(), function(req, res) {
             var itemVariationID = response.data.catalog_object.id;
             changeQuantity(itemVariationID);
           })
-          .catch(function (error) {
+          .catch(function(error) {
+            console.log('========== error creating item variation ==========');
             catchError(error);
           });
   }
@@ -213,6 +135,7 @@ router.post('/add-item', cors(), function(req, res) {
             console.log(response.data);
           })
           .catch(function (error) {
+            console.log('========== error changing quantity ==========');
             catchError(error);
           });
   }
@@ -226,10 +149,10 @@ router.post('/add-item', cors(), function(req, res) {
     })
     // consider refactoring below to save image to square directly from discogs response stream
     .then(function(response) {
-      console.log(`========== got image ==========\n ${response.data}`);
       response.data.pipe(fs.createWriteStream('./tmp/item.jpg'));
     })
     .then(function(response) {
+      // get updated object version
       console.log('========== getting updated object version ==========');
       axios({
         method: 'get',
@@ -241,6 +164,7 @@ router.post('/add-item', cors(), function(req, res) {
         return response.data.object
       })
       .then(function(response) {
+        // save image to square
         console.log('========== saving image to square ==========\n', response);
         var formData = new FormData();
         var imageFile = fs.createReadStream('./tmp/item.jpg');
@@ -274,7 +198,11 @@ router.post('/add-item', cors(), function(req, res) {
         })
         .then(function(response) {
           console.log('========= image saved to square ==========');
-          console.log('saved image to square response:\n', response);
+          console.log(response.data);
+          fs.unlink('./tmp/item.jpg', (err) => {
+            if (err) throw err;
+            console.log('./tmp/item.jpg has been deleted.');
+          });
         })
         .catch(function(error) {
           console.log('========== error saving image to square ==========');
@@ -290,6 +218,7 @@ router.post('/add-item', cors(), function(req, res) {
 
   axios.all([createItem()])
     .then(axios.spread(function(one, two) {
+      console.log('========== axios.all() called ==========');
       res.end();
     }))
     .catch(function (error) {
