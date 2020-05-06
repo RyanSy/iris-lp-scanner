@@ -140,8 +140,9 @@ router.post('/add-item', cors(), function(req, res) {
             console.log('========== item created ==========');
             console.log(response.data.catalog_object);
             var catalogObjectID = response.data.catalog_object.id;
+            var catalogObjectVersion = response.data.catalog_object.version
             createItemVariation(catalogObjectID);
-            createImage(catalogObjectID);
+            createImage(catalogObjectID, catalogObjectVersion);
           })
           .catch(function(error) {
             catchError(error);
@@ -216,7 +217,7 @@ router.post('/add-item', cors(), function(req, res) {
           });
   }
 
-  function createImage(catalog_object_id) {
+  function createImage(catalogObjectID) {
     axios({
       method: 'get',
       url: req.body.image_url,
@@ -229,42 +230,57 @@ router.post('/add-item', cors(), function(req, res) {
       response.data.pipe(fs.createWriteStream('./tmp/item.jpg'));
     })
     .then(function(response) {
-      console.log('========== saving image to square ==========');
-      var formData = new FormData();
-      var imageFile = fs.createReadStream('./tmp/item.jpg');
-      var requestObject = qs.stringify({
-        'idempotency_key': uuidv4(),
-        'object_id': catalog_object_id,
-        'image': {
-          'id': '#1',
-          'type': 'IMAGE'
-        }
-      });
-      formData.append('file', imageFile);
-      formData.append('request', requestObject);
-
+      console.log('========== getting updated object version ==========');
       axios({
-        method: 'post',
-        url: 'https://connect.squareupsandbox.com/v2/catalog/images',
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${process.env.SQUARE_SANDBOX_ACCESS_TOKEN}`,
-          'Cache-Control': 'no-cache',
-          'Square-Version': '2019-03-27',
-          'Content-Disposition': `form-data; name="item"; filename="item.jpg"`,
-          'Content-Type': `multipart/form-data; boundary=${formData._boundary}`
-        },
-        data: formData
-        // data: `file=${imageFile}&request=${requestObject}`
+        method: 'get',
+        url: `https://connect.squareupsandbox.com/v2/catalog/object/${catalogObjectID}`,
+        headers: squareRequestHeaders
       })
       .then(function(response) {
-        console.log('========= image saved to square ==========');
-        console.log('saved image to square response:\n', response);
+        console.log('========== response.data ==========\n', response.data );
+        return response.data.object
       })
-      .catch(function(error) {
-        console.log('========== error saving image to square ==========');
-        catchError(error);
-      });
+      .then(function(response) {
+        console.log('========== saving image to square ==========\n', response);
+        var formData = new FormData();
+        var imageFile = fs.createReadStream('./tmp/item.jpg');
+        var requestObject = JSON.stringify({
+          'idempotency_key': uuidv4(),
+          'object_id': catalogObjectID,
+          'image': {
+            'id': '#1',
+            'type': 'IMAGE',
+            'image_data': {
+              'caption': req.body.title
+            },
+            'version': response.version
+          }
+        });
+        formData.append('file', imageFile);
+        formData.append('request', requestObject);
+
+        axios({
+          method: 'post',
+          url: 'https://connect.squareupsandbox.com/v2/catalog/images',
+          headers: {
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${process.env.SQUARE_SANDBOX_ACCESS_TOKEN}`,
+            'Cache-Control': 'no-cache',
+            'Square-Version': '2020-04-22',
+            'Content-Disposition': `form-data; name="item"; filename="item.jpg"`,
+            'Content-Type': `multipart/form-data; boundary=${formData._boundary}`
+          },
+          data: formData
+        })
+        .then(function(response) {
+          console.log('========= image saved to square ==========');
+          console.log('saved image to square response:\n', response);
+        })
+        .catch(function(error) {
+          console.log('========== error saving image to square ==========');
+          catchError(error);
+        });
+      })
     })
     .catch(function (error) {
       console.log('createImage() ERROR');
