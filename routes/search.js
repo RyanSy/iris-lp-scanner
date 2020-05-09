@@ -41,33 +41,48 @@ router.get('/:barcode', cors(), function(req, res) {
           url: 'https://connect.squareupsandbox.com/v2/catalog/search',
           headers: squareRequestHeaders,
           data: {
-            'object_types': ['ITEM_VARIATION'],
+            'object_types': ['ITEM'],
             'query': {
               'text_query': {
                 'keywords': [req.params.barcode]
               }
-            }
+            },
+            'include_related_objects': true
           }
       })
       .then(function(response) {
         // if found, consider generating url directing to item on square dashboard
-        // look for image url
+        // get item variation'from_state' to use in updating quantity
         if (response.data.objects) {
-          console.log('search square result:\n', response.data.objects[0]);
+          console.log('search square item result:\n', response.data.objects[0]);
+          console.log('search square item variation result:\n', response.data.objects[0].item_data.variations[0]);
+          console.log('search square image result:\n', response.data.related_objects[0]);
           var item = response.data.objects[0];
-          var title = item.item_variation_data.name;
-          var price = parseInt(item.item_variation_data.price_money.amount)/100;
-          retrieveInventoryCount(item.id).then(function(result) {
-            var quantity = parseInt(result);
-            res.json({
-              title: title,
-              quantity: quantity,
-              price: price
+          var item_id = item.id;
+          var item_variation = response.data.objects[0].item_data.variations[0];
+          var item_variation_id = item_variation.id;
+          var image_url = response.data.related_objects[0].image_data.url;
+          var title = item.item_data.name;
+          var price = parseFloat(item_variation.item_variation_data.price_money.amount)/100;
+          retrieveInventoryCount(item_variation_id)
+            .then(function(result) {
+              var itemObj = {};
+              var quantity = parseInt(result.quantity);
+              itemObj.quantity = quantity;
+              var item_state = result.item_state;
+              res.json({
+                title: title,
+                quantity: quantity,
+                price: price,
+                cover_image: image_url,
+                item_id: item_id,
+                item_variation_id: item_variation_id,
+                item_state: item_state
+              });
             });
-          });
         } else {
           console.log('item not found in catalog, searching discogs');
-          searchDiscogs();
+            searchDiscogs();
           }
       })
       .catch(function(error) {
@@ -83,8 +98,9 @@ router.get('/:barcode', cors(), function(req, res) {
       headers: squareRequestHeaders
     })
     .then(function(response) {
-      console.log('retrieveInventoryCount() response:\n', response.data.counts[0].quantity);
-      return response.data.counts[0].quantity;
+      console.log('retrieveInventoryCount() response:\n', response.data.counts[0]);
+      var counts = response.data.counts[0];
+      return counts;
     })
     .catch(function(error) {
       console.log('error retrieving inventory count');

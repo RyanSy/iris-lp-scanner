@@ -2,7 +2,6 @@ var express = require('express');
 var router = express.Router();
 var fs = require('fs');
 var cors = require('cors');
-var qs = require('qs');
 const axios = require('axios');
 const FormData = require('form-data');
 const { v4: uuidv4 } = require('uuid');
@@ -37,8 +36,13 @@ function catchError(error) {
 }
 
 router.post('/', cors(), function(req, res) {
-  console.log('/add-item route called');
-  function createItem() {
+  console.log('/save-item route called');
+  function saveItem() {
+    if (req.body.item_id) {
+      var item_id = req.body.item_id;
+    } else {
+      var item_id = '#1';
+    }
     return axios({
             method: 'post',
             url: 'https://connect.squareupsandbox.com/v2/catalog/object',
@@ -46,7 +50,7 @@ router.post('/', cors(), function(req, res) {
             data: {
               'idempotency_key': uuidv4(),
               'object': {
-                'id': '#1',
+                'id': item_id,
                 'type': 'ITEM',
                 'item_data': {
                   'name': req.body.title,
@@ -56,21 +60,26 @@ router.post('/', cors(), function(req, res) {
             }
           })
           .then(function(response) {
-            console.log('========== item created ==========');
+            console.log('========== item saved ==========');
             console.log(response.data.catalog_object);
             var catalogObjectID = response.data.catalog_object.id;
             var catalogObjectVersion = response.data.catalog_object.version
-            createItemVariation(catalogObjectID);
+            saveItemVariation(catalogObjectID);
             createImage(catalogObjectID, catalogObjectVersion);
             res.end();
           })
           .catch(function(error) {
-            console.log('========== error creating item ==========');
+            console.log('========== error saving item ==========');
             catchError(error);
           });
   }
 
-  function createItemVariation(catalogObjectID) {
+  function saveItemVariation(catalogObjectID) {
+    if (req.body.item_variation_id) {
+      var item_variation_id = req.body.item_variation_id;
+    } else {
+      var item_variation_id = '#2';
+    }
     return axios({
             method: 'post',
             url: 'https://connect.squareupsandbox.com/v2/catalog/object',
@@ -78,7 +87,7 @@ router.post('/', cors(), function(req, res) {
             data: {
               'idempotency_key': uuidv4(),
               'object': {
-                'id': '#2',
+                'id': item_variation_id,
                 'type': 'ITEM_VARIATION',
                 'item_variation_data': {
                   'item_id': catalogObjectID,
@@ -94,20 +103,25 @@ router.post('/', cors(), function(req, res) {
             }
           })
           .then(function(response) {
-            console.log('========== item variation created ==========');
+            console.log('========== item variation saved ==========');
             console.log(response.data.catalog_object);
             var itemVariationID = response.data.catalog_object.id;
-            changeQuantity(itemVariationID);
+            updateQuantity(itemVariationID);
           })
           .catch(function(error) {
-            console.log('========== error creating item variation ==========');
+            console.log('========== error saving item variation ==========');
             catchError(error);
           });
   }
 
-  function changeQuantity(itemVariationID) {
+  function updateQuantity(itemVariationID) {
     var d = new Date();
     var occurred_at = d.toISOString();
+    if (!req.body.item_state) {
+      var item_state = 'NONE';
+    } else {
+      var item_state = req.body.item_state
+    }
     return axios({
             method: 'post',
             url: 'https://connect.squareupsandbox.com/v2/inventory/batch-change',
@@ -141,6 +155,7 @@ router.post('/', cors(), function(req, res) {
   }
 
   function createImage(catalogObjectID) {
+    // get image from Discogs
     axios({
       method: 'get',
       url: req.body.image_url,
@@ -182,7 +197,6 @@ router.post('/', cors(), function(req, res) {
         });
         formData.append('file', imageFile);
         formData.append('request', requestObject);
-
         axios({
           method: 'post',
           url: 'https://connect.squareupsandbox.com/v2/catalog/images',
@@ -216,7 +230,7 @@ router.post('/', cors(), function(req, res) {
     });
   }
 
-  axios.all([createItem()])
+  axios.all([saveItem()])
     .then(axios.spread(function(one, two) {
       console.log('========== axios.all() called ==========');
       res.end();
@@ -225,7 +239,6 @@ router.post('/', cors(), function(req, res) {
       console.log('axios.all() error');
       catchError(error);
     });
-
 }); // end add-item route
 
 module.exports = router;
