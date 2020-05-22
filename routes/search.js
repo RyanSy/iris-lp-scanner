@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 var express = require('express');
 var router = express.Router();
 var cors = require('cors');
@@ -6,8 +8,6 @@ const FormData = require('form-data');
 const { v4: uuidv4 } = require('uuid');
 
 router.use(cors());
-
-require('dotenv').config();
 
 const squareRequestHeaders = {
   'Square-Version': '2020-04-22',
@@ -59,7 +59,7 @@ router.get('/:barcode', cors(), function(req, res) {
           console.log('search square image result:\n', response.data.related_objects[0]);
           var item = response.data.objects[0];
           var item_id = item.id;
-          var item_variation = response.data.objects[0].item_data.variations[0];
+          var item_variation = item.item_data.variations[0];
           var item_variation_id = item_variation.id;
           var image_url = response.data.related_objects[0].image_data.url;
           var title = item.item_data.name;

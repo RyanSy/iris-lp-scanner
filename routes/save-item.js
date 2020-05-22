@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 var express = require('express');
 var router = express.Router();
 var fs = require('fs');
@@ -7,8 +9,6 @@ const FormData = require('form-data');
 const { v4: uuidv4 } = require('uuid');
 
 router.use(cors());
-
-require('dotenv').config();
 
 const squareRequestHeaders = {
   'Square-Version': '2020-04-22',
