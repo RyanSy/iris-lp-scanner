@@ -1,42 +1,12 @@
-require('dotenv').config();
-
-var express = require('express');
-var router = express.Router();
-var fs = require('fs');
-var cors = require('cors');
-const axios = require('axios');
-const FormData = require('form-data');
-const { v4: uuidv4 } = require('uuid');
-
-router.use(cors());
-
-const squareRequestHeaders = {
-  'Square-Version': '2020-04-22',
-  'Authorization': `Bearer ${process.env.SQUARE_SANDBOX_ACCESS_TOKEN}`,
-  'Content-Type': 'application/json'
-};
-
-function catchError(error) {
-  if (error.response) {
-    // The request was made and the server responded with a status code
-    // that falls out of the range of 2xx
-    console.log(error.response.data);
-    console.log(error.response.status);
-    console.log(error.response.headers);
-  } else if (error.request) {
-    // The request was made but no response was received
-    // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
-    // http.ClientRequest in node.js
-    console.log(error.request);
-  } else {
-    // Something happened in setting up the request that triggered an Error
-    console.log('Error', error.message);
-  }
-  console.log(error.config);
-}
-
-router.post('/', cors(), function(req, res) {
+module.exports = function(req, res) {
   console.log('/save-item route called');
+  require('dotenv').config();
+  var fs = require('fs');
+  const axios = require('axios');
+  const FormData = require('form-data');
+  const { v4: uuidv4 } = require('uuid');
+  const catchError = require('../helpers/catchError');
+  const squareRequestHeaders = require('../helpers/squareRequestHeaders');
   function saveItem() {
     if (req.body.item_id) {
       var item_id = req.body.item_id;
@@ -239,6 +209,4 @@ router.post('/', cors(), function(req, res) {
       console.log('axios.all() error');
       catchError(error);
     });
-}); // end add-item route
-
-module.exports = router;
+}

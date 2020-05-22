@@ -4,8 +4,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var cors = require('cors');
 var helmet = require('helmet');
-var search = require('./routes/search');
-var saveItem = require('./routes/save-item');
+var indexRouter = require('./routes/index');
 var app = express();
 
 app.use(helmet());
@@ -14,9 +13,7 @@ app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
 app.use(cookieParser());
-
-app.use('/search', search);
-app.use('/save-item', saveItem);
+app.use('/', indexRouter);
 
 /// catch 404 and forwarding to error handler
 app.use(function(req, res, next) {
@@ -31,6 +28,7 @@ app.use(function(req, res, next) {
 // will print stacktrace
 if (app.get('env') === 'development') {
     app.use(function(err, req, res, next) {
+        console.error(err.stack)
         res.status(err.status || 500);
         res.send(err.message);
     });
