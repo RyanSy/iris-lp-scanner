@@ -87,11 +87,7 @@ module.exports = function(req, res) {
   function updateQuantity(itemVariationID) {
     var d = new Date();
     var occurred_at = d.toISOString();
-    if (!req.body.item_state) {
-      var item_state = 'NONE';
-    } else {
-      var item_state = req.body.item_state
-    }
+    var item_state = 'NONE';
     return axios({
             method: 'post',
             url: 'https://connect.squareupsandbox.com/v2/inventory/batch-change',

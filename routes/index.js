@@ -9,8 +9,8 @@ router.use(cors());
 
 router.get('/search/:barcode', cors(), searchController);
 
-router.get('/create', cors(), createController);
+router.post('/create', cors(), createController);
 
-// router.get('/update', cors(), updateController);
+router.post('/update', cors(), updateController);
 
 module.exports = router;
