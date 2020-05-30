@@ -99,7 +99,7 @@ module.exports = function(req, res) {
                   'type': 'ADJUSTMENT',
                   'adjustment': {
                     'catalog_object_id': itemVariationID,
-                    'quantity': req.body.quantity,
+                    'quantity': req.body.quantity_received,
                     'location_id': process.env.LOCATION_ID,
                     'from_state': 'NONE',
                     'to_state': 'IN_STOCK',

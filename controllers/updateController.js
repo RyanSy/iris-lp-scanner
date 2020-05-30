@@ -17,6 +17,7 @@ module.exports = function(req, res) {
               'object': {
                 'id': item_variation_id,
                 'type': 'ITEM_VARIATION',
+                'version': req.body.item_variation_version,
                 'item_variation_data': {
                   'item_id': catalogObjectID,
                   'name': req.body.title,
@@ -56,7 +57,7 @@ module.exports = function(req, res) {
                   'type': 'PHYSICAL_COUNT',
                   'physical_count': {
                     'catalog_object_id': itemVariationID,
-                    'quantity': req.body.total_quantity,
+                    'quantity': req.body.total_quantity.toString(),
                     'location_id': process.env.LOCATION_ID,
                     'state': req.body.item_state,
                     'occurred_at': occurred_at
@@ -76,5 +77,5 @@ module.exports = function(req, res) {
           });
   }
 
-  updateItem(req.body.item_variation_id);
+  updateItem(req.body.item_id);
 }
