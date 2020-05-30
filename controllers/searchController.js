@@ -8,7 +8,7 @@ module.exports = function(req, res) {
   const squareRequestHeaders = require('../helpers/squareRequestHeaders');
   axios({
           method: 'post',
-          url: 'https://connect.squareupsandbox.com/v2/catalog/search',
+          url: 'https://connect.squareup.com/v2/catalog/search',
           headers: squareRequestHeaders,
           data: {
             'object_types': ['ITEM'],
@@ -67,7 +67,7 @@ module.exports = function(req, res) {
     console.log('retrieveInventoryCount() called');
     return axios({
       method: 'get',
-      url: `https://connect.squareupsandbox.com/v2/inventory/${catalog_object_id}`,
+      url: `https://connect.squareup.com/v2/inventory/${catalog_object_id}`,
       headers: squareRequestHeaders
     })
     .then(function(response) {

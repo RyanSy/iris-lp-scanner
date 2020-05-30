@@ -1,5 +1,5 @@
 module.exports = function(req, res) {
-  console.log('/save-item route called');
+  console.log('/save-item route called: \n', req.body);
   require('dotenv').config();
   var fs = require('fs');
   const axios = require('axios');
@@ -15,7 +15,7 @@ module.exports = function(req, res) {
     }
     return axios({
             method: 'post',
-            url: 'https://connect.squareupsandbox.com/v2/catalog/object',
+            url: 'https://connect.squareup.com/v2/catalog/object',
             headers: squareRequestHeaders,
             data: {
               'idempotency_key': uuidv4(),
@@ -52,7 +52,7 @@ module.exports = function(req, res) {
     }
     return axios({
             method: 'post',
-            url: 'https://connect.squareupsandbox.com/v2/catalog/object',
+            url: 'https://connect.squareup.com/v2/catalog/object',
             headers: squareRequestHeaders,
             data: {
               'idempotency_key': uuidv4(),
@@ -90,7 +90,7 @@ module.exports = function(req, res) {
     var item_state = 'NONE';
     return axios({
             method: 'post',
-            url: 'https://connect.squareupsandbox.com/v2/inventory/batch-change',
+            url: 'https://connect.squareup.com/v2/inventory/batch-change',
             headers: squareRequestHeaders,
             data: {
               'idempotency_key': uuidv4(),
@@ -137,7 +137,7 @@ module.exports = function(req, res) {
       console.log('========== getting updated object version ==========');
       axios({
         method: 'get',
-        url: `https://connect.squareupsandbox.com/v2/catalog/object/${catalogObjectID}`,
+        url: `https://connect.squareup.com/v2/catalog/object/${catalogObjectID}`,
         headers: squareRequestHeaders
       })
       .then(function(response) {
@@ -165,10 +165,10 @@ module.exports = function(req, res) {
         formData.append('request', requestObject);
         axios({
           method: 'post',
-          url: 'https://connect.squareupsandbox.com/v2/catalog/images',
+          url: 'https://connect.squareup.com/v2/catalog/images',
           headers: {
             'Accept': 'application/json',
-            'Authorization': `Bearer ${process.env.SQUARE_SANDBOX_ACCESS_TOKEN}`,
+            'Authorization': `Bearer ${process.env.SQUARE_ACCESS_TOKEN}`,
             'Cache-Control': 'no-cache',
             'Square-Version': '2020-04-22',
             'Content-Disposition': `form-data; name="item"; filename="item.jpg"`,
