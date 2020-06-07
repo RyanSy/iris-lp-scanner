@@ -2,6 +2,7 @@ module.exports = function(req, res) {
   console.log('/save-item route called: \n', req.body);
   require('dotenv').config();
   var fs = require('fs');
+  var cloudinary = require('cloudinary').v2;
   const axios = require('axios');
   const FormData = require('form-data');
   const { v4: uuidv4 } = require('uuid');
@@ -121,78 +122,61 @@ module.exports = function(req, res) {
   }
 
   function createImage(catalogObjectID) {
-    // get image from Discogs
+    console.log('createImage() called');
+    // get updated object version
+    console.log('========== getting updated object version ==========');
     axios({
       method: 'get',
-      url: req.body.image_url,
-      responseType: 'stream',
-      headers: {'User-Agent': 'IRIS-LP-Scanner/1.0'}
-    })
-    // consider refactoring below to save image to square directly from discogs response stream
-    .then(function(response) {
-      response.data.pipe(fs.createWriteStream('./tmp/item.jpg'));
+      url: `https://connect.squareup.com/v2/catalog/object/${catalogObjectID}`,
+      headers: squareRequestHeaders
     })
     .then(function(response) {
-      // get updated object version
-      console.log('========== getting updated object version ==========');
-      axios({
-        method: 'get',
-        url: `https://connect.squareup.com/v2/catalog/object/${catalogObjectID}`,
-        headers: squareRequestHeaders
-      })
-      .then(function(response) {
-        console.log('========== response.data ==========\n', response.data );
-        return response.data.object
-      })
-      .then(function(response) {
-        // save image to square
-        console.log('========== saving image to square ==========\n', response);
-        var formData = new FormData();
-        var imageFile = fs.createReadStream('./tmp/item.jpg');
-        var requestObject = JSON.stringify({
-          'idempotency_key': uuidv4(),
-          'object_id': catalogObjectID,
-          'image': {
-            'id': '#1',
-            'type': 'IMAGE',
-            'image_data': {
-              'caption': req.body.title
-            },
-            'version': response.version
-          }
-        });
-        formData.append('file', imageFile);
-        formData.append('request', requestObject);
-        axios({
-          method: 'post',
-          url: 'https://connect.squareup.com/v2/catalog/images',
-          headers: {
-            'Accept': 'application/json',
-            'Authorization': `Bearer ${process.env.SQUARE_ACCESS_TOKEN}`,
-            'Cache-Control': 'no-cache',
-            'Square-Version': '2020-04-22',
-            'Content-Disposition': `form-data; name="item"; filename="item.jpg"`,
-            'Content-Type': `multipart/form-data; boundary=${formData._boundary}`
+      console.log('========== response.data ==========\n', response.data );
+      return response.data.object
+    })
+    .then(function(response) {
+      // save image to square
+      console.log('========== saving image to square ==========\n', response);
+      var formData = new FormData();
+      var requestObject = JSON.stringify({
+        'idempotency_key': uuidv4(),
+        'object_id': catalogObjectID,
+        'image': {
+          'id': '#1',
+          'type': 'IMAGE',
+          'image_data': {
+            'caption': req.body.title
           },
-          data: formData
-        })
-        .then(function(response) {
-          console.log('========= image saved to square ==========');
-          console.log(response.data);
-          fs.unlink('./tmp/item.jpg', (err) => {
-            if (err) throw err;
-            console.log('./tmp/item.jpg has been deleted.');
-          });
-        })
-        .catch(function(error) {
-          console.log('========== error saving image to square ==========');
-          catchError(error);
+          'version': response.version
+        }
+      });
+      formData.append('file', axios.get(req.body.image_url));
+      formData.append('request', requestObject);
+      axios({
+        method: 'post',
+        url: 'https://connect.squareup.com/v2/catalog/images',
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${process.env.SQUARE_ACCESS_TOKEN}`,
+          'Cache-Control': 'no-cache',
+          'Square-Version': '2020-04-22',
+          'Content-Disposition': `form-data; name="item"; filename="item.jpg"`,
+          'Content-Type': `multipart/form-data; boundary=${formData._boundary}`
+        },
+        data: formData
+      })
+      .then(function(response) {
+        console.log('========= image saved to square ==========');
+        console.log(response.data);
+        fs.unlink('./tmp/item.jpg', (err) => {
+          if (err) throw err;
+          console.log('./tmp/item.jpg has been deleted.');
         });
       })
-    })
-    .catch(function (error) {
-      console.log('createImage() ERROR');
-      catchError(error);
+      .catch(function(error) {
+        console.log('========== error saving image to square ==========');
+        catchError(error);
+      });
     });
   }
 
