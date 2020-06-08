@@ -1,5 +1,5 @@
 module.exports = function(req, res) {
-  console.log('/save-item route called');
+  console.log('\n========== /update route called ==========\n req.body:\n', req.body, '\n');
   require('dotenv').config();
   const axios = require('axios');
   const { v4: uuidv4 } = require('uuid');
@@ -32,13 +32,12 @@ module.exports = function(req, res) {
             }
           })
           .then(function(response) {
-            console.log('========== item variation updated ==========');
-            console.log(response.data.catalog_object);
+            console.log('item variation updated\n', response.data.catalog_object, '\n');
             var itemVariationID = response.data.catalog_object.id;
             updateQuantity(itemVariationID);
           })
           .catch(function(error) {
-            console.log('========== error updating item variation ==========');
+            console.log('error updating item variation\n');
             catchError(error);
           });
   }
@@ -68,11 +67,10 @@ module.exports = function(req, res) {
             }
           })
           .then(function(response) {
-            console.log('========== quantity changed ==========');
-            console.log(response.data);
+            console.log('quantity updated\n');
           })
           .catch(function (error) {
-            console.log('========== error changing quantity ==========');
+            console.log('error updating quantity\n');
             catchError(error);
           });
   }

@@ -1,5 +1,5 @@
 module.exports = function(req, res) {
-  console.log(`/search/${req.params.barcode} route called`);
+  console.log(`\n========== /search/${req.params.barcode} route called ==========\n`);
   require('dotenv').config();
   const axios = require('axios');
   const FormData = require('form-data');
@@ -22,11 +22,9 @@ module.exports = function(req, res) {
       })
       .then(function(response) {
         // if found, consider generating url directing to item on square dashboard
-        // get item variation'from_state' to use in updating quantity
         if (response.data.objects) {
-          console.log('search square item result:\n', response.data.objects[0]);
-          console.log('search square item variation result:\n', response.data.objects[0].item_data.variations[0]);
-          console.log('search square image result:\n', response.data.related_objects[0]);
+          console.log('item found in square catalog:\n', response.data.objects[0], '\n');
+          console.log('item variation found in square catalog:\n', response.data.objects[0].item_data.variations[0], '\n');
           var item = response.data.objects[0];
           var item_id = item.id;
           var item_variation = item.item_data.variations[0];
@@ -54,35 +52,32 @@ module.exports = function(req, res) {
               });
             });
         } else {
-          console.log('item not found in catalog, searching discogs');
-            searchDiscogs();
+          console.log('item not found in square catalog, searching discogs\n');
+          searchDiscogs();
           }
       })
       .catch(function(error) {
-        console.log('error searching square');
+        console.log('error searching square\n');
         catchError(error);
       });
 
   function retrieveInventoryCount(catalog_object_id) {
-    console.log('retrieveInventoryCount() called');
     return axios({
       method: 'get',
       url: `https://connect.squareup.com/v2/inventory/${catalog_object_id}`,
       headers: squareRequestHeaders
     })
     .then(function(response) {
-      console.log('retrieveInventoryCount() response:\n', response.data.counts[0]);
-      var counts = response.data.counts[0];
-      return counts;
+      console.log('inventory count retreived:\n', response.data.counts[0], '\n');
+      return response.data.counts[0];
     })
     .catch(function(error) {
-      console.log('error retrieving inventory count');
+      console.log('error retrieving inventory count\n');
       catchError(error);
     });
   }
 
   function searchDiscogs() {
-    console.log('searchDiscogs() called');
     return axios({
       method: 'get',
       url: `https://api.discogs.com//database/search?q={${req.params.barcode}}&{?barcode}&token=${process.env.DISCOGS_USER_TOKEN}`,
@@ -90,15 +85,15 @@ module.exports = function(req, res) {
     })
     .then(function(response) {
       if (response.data.results.length > 0) {
-        console.log('item found on discogs:\n', response.data.results[0]);
+        console.log('item found on discogs:\n', response.data.results[0], '\n');
         res.json(response.data.results[0]);
       } else {
-        console.log('item not found on discogs');
+        console.log('item not found on discogs\n');
         res.json({ title: 'Item not found' });
       }
     })
     .catch(function(error) {
-      console.log('error searching discogs');
+      console.log('error searching discogs\n');
       catchError(error);
     });
   }

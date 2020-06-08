@@ -1,5 +1,5 @@
 module.exports = function(req, res) {
-  console.log('/save-item route called: \n', req.body);
+  console.log('\n========== /create route called ==========\n req.body:\n', req.body, '\n');
   require('dotenv').config();
   var fs = require('fs');
   var cloudinary = require('cloudinary').v2;
@@ -8,6 +8,7 @@ module.exports = function(req, res) {
   const { v4: uuidv4 } = require('uuid');
   const catchError = require('../helpers/catchError');
   const squareRequestHeaders = require('../helpers/squareRequestHeaders');
+
   function saveItem() {
     if (req.body.item_id) {
       var item_id = req.body.item_id;
@@ -31,8 +32,7 @@ module.exports = function(req, res) {
             }
           })
           .then(function(response) {
-            console.log('========== item saved ==========');
-            console.log(response.data.catalog_object);
+            console.log('item saved\n');
             var catalogObjectID = response.data.catalog_object.id;
             var catalogObjectVersion = response.data.catalog_object.version
             saveItemVariation(catalogObjectID);
@@ -40,7 +40,7 @@ module.exports = function(req, res) {
             res.end();
           })
           .catch(function(error) {
-            console.log('========== error saving item ==========');
+            console.log('error saving item\n');
             catchError(error);
           });
   }
@@ -74,13 +74,12 @@ module.exports = function(req, res) {
             }
           })
           .then(function(response) {
-            console.log('========== item variation saved ==========');
-            console.log(response.data.catalog_object);
+            console.log('item variation saved\n');
             var itemVariationID = response.data.catalog_object.id;
             updateQuantity(itemVariationID);
           })
           .catch(function(error) {
-            console.log('========== error saving item variation ==========');
+            console.log('error saving item variation\n');
             catchError(error);
           });
   }
@@ -112,32 +111,44 @@ module.exports = function(req, res) {
             }
           })
           .then(function(response) {
-            console.log('========== quantity changed ==========');
-            console.log(response.data);
+            console.log('quantity saved\n');
           })
           .catch(function (error) {
-            console.log('========== error changing quantity ==========');
+            console.log('error updating quantity\n');
             catchError(error);
           });
   }
 
   function createImage(catalogObjectID) {
-    console.log('createImage() called');
+    // get image from discogs
+    axios({
+      method: 'get',
+      url: req.body.image_url,
+      responseType: 'stream',
+      headers: {'User-Agent': 'IRIS-LP-Scanner/1.0'}
+    })
+    .then(function(response) {
+      console.log('image downloaded from discogs\n');
+      response.data.pipe(fs.createWriteStream('item.jpg'));
+    })
+    .catch(function(error) {
+      console.log('error getting image from discogs\n');
+      catchError(error);
+    });
     // get updated object version
-    console.log('========== getting updated object version ==========');
     axios({
       method: 'get',
       url: `https://connect.squareup.com/v2/catalog/object/${catalogObjectID}`,
       headers: squareRequestHeaders
     })
     .then(function(response) {
-      console.log('========== response.data ==========\n', response.data );
-      return response.data.object
+      console.log('retreived updated object version\n');
+      return response.data.object.version
     })
-    .then(function(response) {
+    .then(function(version) {
       // save image to square
-      console.log('========== saving image to square ==========\n', response);
       var formData = new FormData();
+      var imageFile = fs.createReadStream('item.jpg');
       var requestObject = JSON.stringify({
         'idempotency_key': uuidv4(),
         'object_id': catalogObjectID,
@@ -147,10 +158,10 @@ module.exports = function(req, res) {
           'image_data': {
             'caption': req.body.title
           },
-          'version': response.version
+          'version': version
         }
       });
-      formData.append('file', axios.get(req.body.image_url));
+      formData.append('request', imageFile);
       formData.append('request', requestObject);
       axios({
         method: 'post',
@@ -166,27 +177,23 @@ module.exports = function(req, res) {
         data: formData
       })
       .then(function(response) {
-        console.log('========= image saved to square ==========');
-        console.log(response.data);
-        fs.unlink('./tmp/item.jpg', (err) => {
-          if (err) throw err;
-          console.log('./tmp/item.jpg has been deleted.');
-        });
+        console.log('image saved\n');
       })
       .catch(function(error) {
-        console.log('========== error saving image to square ==========');
+        console.log('error saving image\n');
         catchError(error);
       });
     });
   }
 
-  axios.all([saveItem()])
-    .then(axios.spread(function(one, two) {
-      console.log('========== axios.all() called ==========');
-      res.end();
-    }))
-    .catch(function (error) {
-      console.log('axios.all() error');
-      catchError(error);
-    });
+  saveItem();
+  // axios.all([saveItem()])
+  //   .then(axios.spread(function(one, two) {
+  //     console.log('axios.all() called\n');
+  //     res.end();
+  //   }))
+  //   .catch(function (error) {
+  //     console.log('axios.all() error\n');
+  //     catchError(error);
+  //   });
 }
