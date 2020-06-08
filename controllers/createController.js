@@ -178,6 +178,10 @@ module.exports = function(req, res) {
       })
       .then(function(response) {
         console.log('image saved\n');
+        fs.unlink('item.jpg', (err) => {
+          if (err) throw err;
+          console.log('item.jpg has been deleted\n');
+        })
       })
       .catch(function(error) {
         console.log('error saving image\n');
