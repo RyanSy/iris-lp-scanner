@@ -9,6 +9,7 @@ var app = express();
 var searchController = require('./controllers/searchController');
 var createController = require('./controllers/createController');
 var updateController = require('./controllers/updateController');
+var port = process.env.PORT || 8080;
 
 app.use(helmet());
 app.use(cors());
@@ -50,4 +51,6 @@ app.post('/create', createController);
 
 app.post('/update', updateController);
 
-module.exports = app;
+app.listen(port, function() {
+  console.log(`Listening on port ${port}`);
+});

@@ -1,7 +1,7 @@
 module.exports = {
   apps : [{
     name: 'iris-lp-scanner-server',
-    script: './bin/www',
+    script: './app.js',
 
     // Options reference: https://pm2.keymetrics.io/docs/usage/application-declaration/
     args: 'one two',
