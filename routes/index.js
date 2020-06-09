@@ -5,17 +5,12 @@ var searchController = require('../controllers/searchController');
 var createController = require('../controllers/createController');
 var updateController = require('../controllers/updateController');
 
-var corsOptions ={
-  origin: 'https://irislpscanner.surge.sh',
-  optionsSuccessStatus: 200
-}
-
 router.use(cors());
 
-router.get('/search/:barcode', cors(corsOptions), searchController);
+router.get('/search/:barcode', searchController);
 
-router.post('/create', cors(corsOptions), createController);
+router.post('/create', createController);
 
-router.post('/update', cors(corsOptions), updateController);
+router.post('/update', updateController);
 
 module.exports = router;
