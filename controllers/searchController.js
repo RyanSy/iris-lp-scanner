@@ -1,4 +1,4 @@
-module.exports = function(req, res) {
+module.exports = function(req, res, next) {
   console.log(`\n========== /search/${req.params.barcode} route called ==========\n`);
   require('dotenv').config();
   const axios = require('axios');

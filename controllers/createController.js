@@ -1,4 +1,4 @@
-module.exports = function(req, res) {
+module.exports = function(req, res, next) {
   console.log('\n========== /create route called ==========\n req.body:\n', req.body, '\n');
   require('dotenv').config();
   var fs = require('fs');

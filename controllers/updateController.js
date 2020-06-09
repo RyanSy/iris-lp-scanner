@@ -1,4 +1,4 @@
-module.exports = function(req, res) {
+module.exports = function(req, res, next) {
   console.log('\n========== /update route called ==========\n req.body:\n', req.body, '\n');
   require('dotenv').config();
   const axios = require('axios');
