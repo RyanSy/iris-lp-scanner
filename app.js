@@ -4,7 +4,6 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var helmet = require('helmet');
 var cors = require('cors');
-// var indexRouter = require('./routes/index');
 var app = express();
 var searchController = require('./controllers/searchController');
 var createController = require('./controllers/createController');
@@ -17,7 +16,12 @@ app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
 app.use(cookieParser());
-// app.use('/', indexRouter);
+
+app.get('/search/:barcode', searchController);
+
+app.post('/create', createController);
+
+app.post('/update', updateController);
 
 /// catch 404 and forwarding to error handler
 app.use(function(req, res, next) {
@@ -44,12 +48,6 @@ app.use(function(err, req, res, next) {
     res.status(err.status || 500);
     res.send(err.message);
 });
-
-app.get('/search/:barcode', searchController);
-
-app.post('/create', createController);
-
-app.post('/update', updateController);
 
 app.listen(port, function() {
   console.log(`Listening on port ${port}`);

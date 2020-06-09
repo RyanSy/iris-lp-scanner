@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "pm2-runtime start ecosystem.config.js --env production",
-    "devstart": "DEBUG=iris-lp-scanner-server nodemon ./bin/www"
+    "devstart": "nodemon ./app.js"
   },
   "dependencies": {
     "axios": "^0.19.2",
