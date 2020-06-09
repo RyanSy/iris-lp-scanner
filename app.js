@@ -12,6 +12,10 @@ app.use(bodyParser.urlencoded());
 app.use(cors());
 app.options('*', cors());
 
+app.get('/test', function(req, res, next) {
+  res.json({message: 'this is a test'});
+});
+
 app.get('/search/:barcode', searchController);
 
 app.post('/create', createController);
