@@ -10,6 +10,8 @@ var corsOptions ={
   optionsSuccessStatus: 200
 }
 
+router.use(cors());
+
 router.get('/search/:barcode', cors(corsOptions), searchController);
 
 router.post('/create', cors(corsOptions), createController);
