@@ -2,7 +2,6 @@ module.exports = function(req, res, next) {
   console.log('\n========== /create route called ==========\n req.body:\n', req.body, '\n');
   require('dotenv').config();
   var fs = require('fs');
-  var cloudinary = require('cloudinary').v2;
   const axios = require('axios');
   const FormData = require('form-data');
   const { v4: uuidv4 } = require('uuid');
