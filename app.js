@@ -2,8 +2,7 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var cors = require('cors');
 var app = express();
-// var searchController = require('./controllers/searchController');
-var createController = require('./controllers/createController');
+llvar createController = require('./controllers/createController');
 var updateController = require('./controllers/updateController');
 var port = process.env.PORT || 8080;
 
@@ -22,8 +21,8 @@ app.get('/search/:barcode', function(req, res, next) {
   const axios = require('axios');
   const FormData = require('form-data');
   const { v4: uuidv4 } = require('uuid');
-  const catchError = require('../helpers/catchError');
-  const squareRequestHeaders = require('../helpers/squareRequestHeaders');
+  const catchError = require('./helpers/catchError');
+  const squareRequestHeaders = require('./helpers/squareRequestHeaders');
   axios({
           method: 'post',
           url: 'https://connect.squareup.com/v2/catalog/search',
