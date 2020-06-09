@@ -10,6 +10,7 @@ var port = process.env.PORT || 8080;
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
 app.use(cors());
+app.options('*', cors());
 
 app.get('/search/:barcode', searchController);
 
