@@ -31,12 +31,16 @@ module.exports = function(req, res, next) {
             }
           })
           .then(function(response) {
-            console.log('item saved\n');
             var catalogObjectID = response.data.catalog_object.id;
-            var catalogObjectVersion = response.data.catalog_object.version
             saveItemVariation(catalogObjectID);
+          })
+          .then(function(response) {
+            var catalogObjectID = response.data.catalog_object.id;
             saveTaxData(catalogObjectID);
-            createImage(catalogObjectID, catalogObjectVersion);
+          })
+          .then(function(response) {
+            var catalogObjectID = response.data.catalog_object.id;
+            createImage(catalogObjectID);
             res.end();
           })
           .catch(function(error) {
@@ -84,31 +88,6 @@ module.exports = function(req, res, next) {
           });
   }
 
-  function saveTaxData(catalogObjectID) {
-    return axios({
-      method: 'post',
-      url: 'https://connect.squareup.com/v2/catalog/object',
-      headers: squareRequestHeaders,
-      data: {
-        'idempotency_key': uuidv4(),
-        'object': {
-          'id': catalogObjectID,
-          'type': 'TAX',
-          'tax_data': {
-            'enabled': true
-          }
-        }
-      }
-    })
-      .then(function(response) {
-        console.log('tax data saved\n');
-      })
-      .catch(function(error) {
-        console.log('error saving tax data\n');
-        catchError(error);
-      });
-  }
-
   function updateQuantity(itemVariationID) {
     var d = new Date();
     var occurred_at = d.toISOString();
@@ -142,6 +121,31 @@ module.exports = function(req, res, next) {
             console.log('error updating quantity\n');
             catchError(error);
           });
+  }
+
+  function saveTaxData(catalogObjectID) {
+    return axios({
+      method: 'post',
+      url: 'https://connect.squareup.com/v2/catalog/object',
+      headers: squareRequestHeaders,
+      data: {
+        'idempotency_key': uuidv4(),
+        'object': {
+          'id': catalogObjectID,
+          'type': 'TAX',
+          'tax_data': {
+            'enabled': true
+          }
+        }
+      }
+    })
+      .then(function(response) {
+        console.log('tax data saved\n');
+      })
+      .catch(function(error) {
+        console.log('error saving tax data\n');
+        catchError(error);
+      });
   }
 
   function createImage(catalogObjectID) {
