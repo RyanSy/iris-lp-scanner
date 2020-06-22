@@ -26,6 +26,9 @@ module.exports = function(req, res, next) {
                 'item_data': {
                   'name': req.body.title,
                   'description': `UPC: ${req.body.barcode}`
+                },
+                'tax_data': {
+                  'enabled': true
                 }
               }
             }
