@@ -26,9 +26,6 @@ module.exports = function(req, res, next) {
                 'item_data': {
                   'name': req.body.title,
                   'description': `UPC: ${req.body.barcode}`
-                },
-                'tax_data': {
-                  'enabled': true
                 }
               }
             }
@@ -38,6 +35,7 @@ module.exports = function(req, res, next) {
             var catalogObjectID = response.data.catalog_object.id;
             var catalogObjectVersion = response.data.catalog_object.version
             saveItemVariation(catalogObjectID);
+            saveTaxData(catalogObjectID);
             createImage(catalogObjectID, catalogObjectVersion);
             res.end();
           })
@@ -84,6 +82,31 @@ module.exports = function(req, res, next) {
             console.log('error saving item variation\n');
             catchError(error);
           });
+  }
+
+  function saveTaxData(catalogObjectID) {
+    return axios({
+      method: 'post',
+      url: 'https://connect.squareup.com/v2/catalog/object',
+      headers: squareRequestHeaders,
+      data: {
+        'idempotency_key': uuidv4(),
+        'object': {
+          'id': catalogObjectID,
+          'type': 'TAX',
+          'tax_data': {
+            'enabled': true
+          }
+        }
+      }
+    })
+      .then(function(response) {
+        console.log('tax data saved\n');
+      })
+      .catch(function(error) {
+        console.log('error saving tax data\n');
+        catchError(error);
+      });
   }
 
   function updateQuantity(itemVariationID) {
@@ -193,13 +216,4 @@ module.exports = function(req, res, next) {
   }
 
   saveItem();
-  // axios.all([saveItem()])
-  //   .then(axios.spread(function(one, two) {
-  //     console.log('axios.all() called\n');
-  //     res.end();
-  //   }))
-  //   .catch(function (error) {
-  //     console.log('axios.all() error\n');
-  //     catchError(error);
-  //   });
 }
