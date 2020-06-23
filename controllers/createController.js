@@ -32,10 +32,10 @@ module.exports = function(req, res, next) {
             }
           })
           .then(function(response) {
+            console.log('item saved\n');
             var catalogObjectID = response.data.catalog_object.id;
             saveItemVariation(catalogObjectID);
             return catalogObjectID;
-            res.end();
           })
           .catch(function(error) {
             console.log('error saving item\n');
@@ -188,10 +188,13 @@ module.exports = function(req, res, next) {
     });
   }
 
-  function runner() {
+  function createCatalogObject() {
+    console.log('creating catalog object\n');
     return saveItem()
     .then(createImage);
   }
 
-  runner();
+  createCatalogObject().then(function() {
+    console.log('catalog item created\n');
+  });
 }
