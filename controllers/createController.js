@@ -35,9 +35,6 @@ module.exports = function(req, res, next) {
             var catalogObjectID = response.data.catalog_object.id;
             saveItemVariation(catalogObjectID);
             return catalogObjectID;
-          })
-          .then(function(catalogObjectID) {
-            createImage(catalogObjectID);
             res.end();
           })
           .catch(function(error) {
@@ -191,5 +188,10 @@ module.exports = function(req, res, next) {
     });
   }
 
-  saveItem();
+  function runner() {
+    return saveItem()
+    .then(createImage);
+  }
+
+  runner();
 }
