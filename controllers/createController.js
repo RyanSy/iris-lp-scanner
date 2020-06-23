@@ -124,9 +124,9 @@ module.exports = function(req, res, next) {
       url: 'https://connect.squareup.com/v2/catalog/object',
       headers: squareRequestHeaders,
       data: {
+        'id': catalogObjectID,
         'idempotency_key': uuidv4(),
         'object': {
-          'id': catalogObjectID,
           'type': 'TAX',
           'tax_data': {
             'enabled': true
