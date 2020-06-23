@@ -25,7 +25,8 @@ module.exports = function(req, res, next) {
                 'type': 'ITEM',
                 'item_data': {
                   'name': req.body.title,
-                  'description': `UPC: ${req.body.barcode}`
+                  'description': `UPC: ${req.body.barcode}`,
+                  'tax_ids': process.env.TAX_ID
                 }
               }
             }
@@ -33,10 +34,6 @@ module.exports = function(req, res, next) {
           .then(function(response) {
             var catalogObjectID = response.data.catalog_object.id;
             saveItemVariation(catalogObjectID);
-            return catalogObjectID;
-          })
-          .then(function(catalogObjectID) {
-            saveTaxData(catalogObjectID);
             return catalogObjectID;
           })
           .then(function(catalogObjectID) {
@@ -121,31 +118,6 @@ module.exports = function(req, res, next) {
             console.log('error updating quantity\n');
             catchError(error);
           });
-  }
-
-  function saveTaxData(catalogObjectID) {
-    return axios({
-      method: 'post',
-      url: 'https://connect.squareup.com/v2/catalog/object',
-      headers: squareRequestHeaders,
-      data: {
-        'idempotency_key': uuidv4(),
-        'object': {
-          'type': 'TAX',
-          'tax_data': {
-            'enabled': true
-          },
-          'id': catalogObjectID
-        }
-      }
-    })
-      .then(function(response) {
-        console.log('tax data saved\n');
-      })
-      .catch(function(error) {
-        console.log('error saving tax data\n');
-        catchError(error);
-      });
   }
 
   function createImage(catalogObjectID) {
