@@ -31,15 +31,10 @@ module.exports = function(req, res, next) {
             }
           })
           .then(function(response) {
+            console.log(response);
             var catalogObjectID = response.data.catalog_object.id;
             saveItemVariation(catalogObjectID);
-          })
-          .then(function(response) {
-            var catalogObjectID = response.data.catalog_object.id;
             saveTaxData(catalogObjectID);
-          })
-          .then(function(response) {
-            var catalogObjectID = response.data.catalog_object.id;
             createImage(catalogObjectID);
             res.end();
           })
