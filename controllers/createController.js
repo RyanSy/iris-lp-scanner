@@ -26,7 +26,7 @@ module.exports = function(req, res, next) {
                 'item_data': {
                   'name': req.body.title,
                   'description': `UPC: ${req.body.barcode}`,
-                  'tax_ids': process.env.TAX_ID
+                  'tax_ids': [process.env.TAX_ID]
                 }
               }
             }
