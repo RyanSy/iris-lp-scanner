@@ -20,7 +20,6 @@ module.exports = function(req, res, next) {
                 'version': req.body.item_variation_version,
                 'item_variation_data': {
                   'item_id': catalogObjectID,
-                  'name': req.body.title,
                   'price_money': {
                     'amount': parseFloat(req.body.price)*100,
                     'currency': 'USD'

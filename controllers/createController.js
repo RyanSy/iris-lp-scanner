@@ -9,11 +9,6 @@ module.exports = function(req, res, next) {
   const squareRequestHeaders = require('../helpers/squareRequestHeaders');
 
   function saveItem() {
-    if (req.body.item_id) {
-      var item_id = req.body.item_id;
-    } else {
-      var item_id = '#1';
-    }
     return axios({
             method: 'post',
             url: 'https://connect.squareup.com/v2/catalog/object',
@@ -21,11 +16,26 @@ module.exports = function(req, res, next) {
             data: {
               'idempotency_key': uuidv4(),
               'object': {
-                'id': item_id,
+                'id': '#1',
                 'type': 'ITEM',
                 'item_data': {
                   'name': req.body.title,
                   'description': `UPC: ${req.body.barcode}`,
+                  'variations': [
+                    {
+                      'id': '#2',
+                      'type': 'ITEM_VARIATION',
+                      'item_variation_data': {
+                        'price_money': {
+                          'amount': parseFloat(req.body.price)*100,
+                          'currency': 'USD'
+                        },
+                        'pricing_type': 'FIXED_PRICING',
+                        'sku': req.body.barcode,
+                        'track_inventory': true
+                      }
+                    }
+                  ],
                   'tax_ids': [process.env.TAX_ID]
                 }
               }
@@ -33,9 +43,10 @@ module.exports = function(req, res, next) {
           })
           .then(function(response) {
             console.log('item saved\n');
+            var itemVariationID = response.data.catalog_object.item_data.variations[0].id;
             var catalogObjectID = response.data.catalog_object.id;
-            saveItemVariation(catalogObjectID);
-            return catalogObjectID;
+            updateQuantity(itemVariationID);
+            return catalogObjectID  ;
           })
           .catch(function(error) {
             console.log('error saving item\n');
@@ -43,49 +54,9 @@ module.exports = function(req, res, next) {
           });
   }
 
-  function saveItemVariation(catalogObjectID) {
-    if (req.body.item_variation_id) {
-      var item_variation_id = req.body.item_variation_id;
-    } else {
-      var item_variation_id = '#2';
-    }
-    return axios({
-            method: 'post',
-            url: 'https://connect.squareup.com/v2/catalog/object',
-            headers: squareRequestHeaders,
-            data: {
-              'idempotency_key': uuidv4(),
-              'object': {
-                'id': item_variation_id,
-                'type': 'ITEM_VARIATION',
-                'item_variation_data': {
-                  'item_id': catalogObjectID,
-                  'name': req.body.title,
-                  'price_money': {
-                    'amount': parseFloat(req.body.price)*100,
-                    'currency': 'USD'
-                  },
-                  'pricing_type': 'FIXED_PRICING',
-                  'sku': req.body.barcode
-                }
-              }
-            }
-          })
-          .then(function(response) {
-            console.log('item variation saved\n');
-            var itemVariationID = response.data.catalog_object.id;
-            updateQuantity(itemVariationID);
-          })
-          .catch(function(error) {
-            console.log('error saving item variation\n');
-            catchError(error);
-          });
-  }
-
   function updateQuantity(itemVariationID) {
     var d = new Date();
     var occurred_at = d.toISOString();
-    var item_state = 'NONE';
     return axios({
             method: 'post',
             url: 'https://connect.squareup.com/v2/inventory/batch-change',
