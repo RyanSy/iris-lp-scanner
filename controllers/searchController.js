@@ -30,7 +30,7 @@ module.exports = function(req, res, next) {
           var item_variation = item.item_data.variations[0];
           var item_variation_id = item_variation.id;
           var item_variation_version = item_variation.version;
-          var image_url = response.data.related_objects[0].image_data.url;
+          var image_url = item.item_data.ecom_image_uris;
           var title = item.item_data.name;
           var price = parseFloat(item_variation.item_variation_data.price_money.amount)/100;
           retrieveInventoryCount(item_variation_id)
