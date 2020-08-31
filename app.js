@@ -1,24 +1,22 @@
 var express = require('express');
 var path = require('path');
 var bodyParser = require('body-parser');
+var cors = require('cors');
 var app = express();
 var searchController = require('./controllers/searchController');
 var createController = require('./controllers/createController');
 var updateController = require('./controllers/updateController');
 var port = process.env.PORT || 8080;
 
+app.use(cors());
+app.options('*', cors());
 app.use(express.static(path.join(__dirname, 'build')));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
-<<<<<<< HEAD
-=======
-app.use(cors());
-app.options('*', cors());
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   next();
 });
->>>>>>> 7c04b57aea71fb774c9ec90ad185a1bbdb0c27c0
 
 app.get('/search/:barcode', searchController);
 
