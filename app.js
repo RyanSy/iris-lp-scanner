@@ -10,6 +10,15 @@ var port = process.env.PORT || 8080;
 app.use(express.static(path.join(__dirname, 'build')));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
+<<<<<<< HEAD
+=======
+app.use(cors());
+app.options('*', cors());
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  next();
+});
+>>>>>>> 7c04b57aea71fb774c9ec90ad185a1bbdb0c27c0
 
 app.get('/search/:barcode', searchController);
 
