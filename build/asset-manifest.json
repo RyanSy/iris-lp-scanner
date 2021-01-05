@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.js": "/static/js/main.69f5e06b.chunk.js",
-    "main.js.map": "/static/js/main.69f5e06b.chunk.js.map",
+    "main.js": "/static/js/main.5d55fad1.chunk.js",
+    "main.js.map": "/static/js/main.5d55fad1.chunk.js.map",
     "runtime-main.js": "/static/js/runtime-main.20abe852.js",
     "runtime-main.js.map": "/static/js/runtime-main.20abe852.js.map",
     "static/js/2.a4f6ab3c.chunk.js": "/static/js/2.a4f6ab3c.chunk.js",
     "static/js/2.a4f6ab3c.chunk.js.map": "/static/js/2.a4f6ab3c.chunk.js.map",
     "index.html": "/index.html",
-    "precache-manifest.b9d62974a603343c3b756f97ed47ad1a.js": "/precache-manifest.b9d62974a603343c3b756f97ed47ad1a.js",
+    "precache-manifest.b59a42992960fa0a49ad8a50cbeb88f5.js": "/precache-manifest.b59a42992960fa0a49ad8a50cbeb88f5.js",
     "service-worker.js": "/service-worker.js",
     "static/js/2.a4f6ab3c.chunk.js.LICENSE.txt": "/static/js/2.a4f6ab3c.chunk.js.LICENSE.txt",
     "static/media/recordSpinning.mp4": "/static/media/recordSpinning.0f067fa5.mp4"
@@ -15,6 +15,6 @@
   "entrypoints": [
     "static/js/runtime-main.20abe852.js",
     "static/js/2.a4f6ab3c.chunk.js",
-    "static/js/main.69f5e06b.chunk.js"
+    "static/js/main.5d55fad1.chunk.js"
   ]
 }
