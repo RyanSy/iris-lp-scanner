@@ -10,7 +10,7 @@ var port = process.env.PORT || 8080;
 
 app.use(cors());
 app.options('*', cors());
-app.use(express.static(path.join(__dirname, 'build')));
+app.use(express.static(path.join(__dirname, 'client/build')));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
 app.use((req, res, next) => {
