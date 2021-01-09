@@ -146,13 +146,13 @@ module.exports = function(req, res, next) {
         data: formData
       })
       .then(function(response) {
-        console.log('image saved\n');
         fs.unlink('item.jpg', (err) => {
           if (err) throw err;
           console.log('item.jpg has been deleted\n');
         })
       })
       .catch(function(error) {
+        return;
         console.log('error saving image\n');
         catchError(error);
       });
@@ -168,4 +168,6 @@ module.exports = function(req, res, next) {
   createCatalogObject().then(function() {
     console.log('catalog item created\n');
   });
+
+  res.end('create process complete');
 }

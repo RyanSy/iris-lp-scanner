@@ -66,13 +66,17 @@ module.exports = function(req, res, next) {
             }
           })
           .then(function(response) {
+            return response;
             console.log('quantity updated\n');
           })
           .catch(function (error) {
+            return;
             console.log('error updating quantity\n');
             catchError(error);
           });
   }
 
   updateItem(req.body.item_id);
+
+  res.end('update process complete');
 }
